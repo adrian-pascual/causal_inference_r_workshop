@@ -19,7 +19,7 @@ library(halfmoon)
 In this exercise, we'll attempt to answer a causal question: does mosquito bed net use reduce malaria risk? 
 
 To answer this question, we'll use the causal inference methods we learned in this workshop. You may use any technique you prefer. If you have time, try more than one technique and compare the results. Remember the broad strokes we discussed today: 
-
+c
 1. Specify causal question (we just did this!)
 2. Draw assumptions (via a causal diagram, which we'll do below)
 3. Model assumptions (e.g. with a propensity score)
@@ -127,7 +127,74 @@ mosquito_dag |>
 Now, conduct the causal analysis as you see fit! Feel free to work in groups and to ask us questions.
 
 ```{r}
+propensity_model <- glm(
+  malaria_risk ~ net,
+  data = net_data,
+  family = binomial()
+)
 
+seven_dwarfs_prop <- propensity_model |>
+  augment(type.predict = "response", data = seven_dwarfs)
+
+
+
+
+
+
+
+
+
+
+fit_ipw <- function(split, ...) { 
+  .df <- analysis(split)
+  
+  # fit propensity score model
+  propensity_model <- glm(
+    malaria_risk ~ net,
+    family = binomial(),
+    data = .df
+  )
+  # calculate ATE weights
+.df <- propensity_model |> 
+  augment(type.predict = "response", data = .df) |>
+  mutate(wts = wt_ate(.fitted, malaria_risk, exposure_type = "continuous"))
+  # fit correctly bootstrapped ipw model 
+  lm(net ~ malaria_risk, data = .df, weights = wts) |>
+    tidy() 
+}
+
+set.seed(1234)
+
+ipw_results <- bootstraps(net_data, 1000, apparent = TRUE) |>
+  mutate(boot_fits = map(splits, fit_ipw)) 
+
+
+ipw_results |>
+  mutate(
+    estimate = map_dbl(
+      boot_fits,
+      # pull the `estimate` for `net` for each fit
+      \(.fit) .fit |>
+        filter(term == "net") |>
+        pull(estimate)
+    )
+  ) |>
+  ggplot(aes(estimate)) +
+  geom_histogram(fill = "#D55E00FF", color = "white", alpha = 0.8) + 
+  theme_minimal()
+
+boot_estimate <- int_t(ipw_results, boot_fits) |>
+  filter(term == "net")
+
+boot_estimate
+
+
+
+
+
+
+# use adjust_coef_with_binary to adjust for this unmeasured cofounder
+# second data set called net_data_full with 
 ```
 
 

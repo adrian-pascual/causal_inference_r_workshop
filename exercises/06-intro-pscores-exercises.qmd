@@ -114,10 +114,10 @@ Now, fit a propensity score model for `park_extra_magic_morning` using the above
 
 ```{r}
 #| eval: false
-propensity_model <- ___(
-  ___ ~ ___,
+propensity_model <- glm(
+  park_extra_magic_morning ~ park_close,
   data = seven_dwarfs,
-  family = _____
+  family = binomial()
 )
 ```
 
@@ -126,7 +126,7 @@ Add the propensity scores to the `seven_dwarfs` data set, call this new dataset 
 ```{r}
 #| eval: false
 df <- propensity_model |>
-  ____(type.predict = ____, data = ____)
+  augment(type.predict = "response", data = seven_dwarfs)
 ```
 
 Stretch Goal 1:
@@ -135,5 +135,7 @@ Examine two histograms of the propensity scores, one days with Extra Magic Morni
 How do these compare?
 
 ```{r}
-
+df %>% 
+  ggplot(aes(x = .fitted, fill = factor(park_extra_magic_morning))) + 
+  geom_histogram()
 ```

@@ -31,8 +31,8 @@ sim <- tibble(
 
 ```{r}
 sim |>
-  group_by(______, ______) |>
-  summarise(avg_y = mean(______)) |>
+  group_by(confounder, exposure) |>
+  summarise(avg_y = mean(outcome)) |>
   # pivot the data so we can get the difference
   # between the exposure groups
   pivot_wider(
@@ -70,8 +70,8 @@ sim2 <- tibble(
 
 ```{r}
 sim2 |>
-  group_by(_____, _____, _____) |>
-  summarise(avg_y = mean(_____)) |>
+  group_by(confounder_1, confounder_2, exposure) |>
+  summarise(avg_y = mean(outcome)) |>
   pivot_wider(
     names_from = exposure,
     values_from = avg_y,  
@@ -101,9 +101,9 @@ sim3 <- tibble(
 
 ```{r}
 sim3 |>
-  mutate(confounder_q = _____(_____, 5)) |>
-  group_by(_____, _____) |>
-  summarise(avg_y = mean(_____)) |>
+  mutate(confounder_q = ntile(confounder, 5)) |>
+  group_by(exposure, confounder_q) |>
+  summarise(avg_y = mean(outcome)) |>
   pivot_wider(
     names_from = exposure,
     values_from = avg_y,  

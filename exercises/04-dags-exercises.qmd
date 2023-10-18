@@ -24,21 +24,21 @@ Stretch goal: Underneath the hood, `ggdag()` calls `tidy_dagitty()` on `dagitty`
 Stretch goal: We are assuming that coffee does *not* cause lung cancer. In causal diagram terminology, we want to know if these two factors are *D-connected* (as in, directionally connected). Since we are assuming that there's no causal relationship, any D-connection is caused by other factors. Try `ggdag_dconnected()` to see if we coffee and lung cancer are D-connected.
 
 ```{r}
-coffee_cancer_dag <- ______(
-  ______ ~ ______,
+coffee_cancer_dag <- dagify(
+  cancer ~ smoking,
   smoking ~ addictive,
   coffee ~ addictive,
-  exposure = "______",
-  outcome = "______",
+  exposure = "coffee",
+  outcome = "cancer",
   labels = c(
     "coffee" = "Coffee", 
     "cancer" = "Lung Cancer", 
     "smoking" = "Smoking", 
     "addictive" = "Addictive \nBehavior"
-  )
+  ) 
 )
 
-______(coffee_cancer_dag)
+ggdag(coffee_cancer_dag, node_size = 22) + theme_dag_blank()
 ```
 
 ## Your Turn 2

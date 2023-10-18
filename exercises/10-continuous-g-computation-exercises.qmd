@@ -108,7 +108,7 @@ wait_times <- eight |>
 
 For the parametric G-formula, we'll use a single model to fit a causal model of Posted Waiting Times (`wait_minutes_posted_avg`) on Actual Waiting Times (`wait_minutes_actual_avg`) where we  include all covariates, much as we normally fit regression models. However, instead of interpreting the coefficients, we'll calculate the estimate by predicting on cloned data sets.
 
-Two additional differences in our model: we'll use a natural cubic spline on the exposure, `wait_minutes_posted_avg`, using `ns()` from the splines package, and we'll include an interaction term between `wait_minutes_posted_avg` and `park_extra_magic_morning`. These complicate the interpretation of the coefficient of the model in normal regression but have virtually no downside (as long as we have a reasonable sample size) in g-computation, because we still get an easily interpretable result.
+Two additional differences in our model: we'll use a natural cubic spline on the exposure, `wait_minutes_posted_avg`, using `ns()` from the splines package, and we'll include an interaction term between `wait_minutes_posted_avg` and `park_extra_magic_morning`. These complicate the interpretation of the coefficient of the model in normal regression but have virtually no downside (eas long as we have a reasonable sample size) in g-computation, because we still get an easily interpretable result.
 
 First, let's fit the model. 
 
@@ -116,8 +116,8 @@ First, let's fit the model.
 2. Save the model as `standardized_model`
 
 ```{r}
-_______ ___ _______(
-  wait_minutes_actual_avg ~ ns(_______, df = 5)*park_extra_magic_morning + _______ + _______ + _______, 
+standardized_model <- lm(
+  wait_minutes_actual_avg ~ ns(wait_minutes_posted_avg, df = 5)*park_extra_magic_morning + park_temperature_average + park_ticket_season + park_temperature_high, 
   data = seven_dwarfs
 )
 ```
@@ -131,19 +131,19 @@ Now that we've fit a model, we need to clone our data set. To do this, we'll sim
 3. Save the predicted data sets as`predicted_thirty` and `predicted_sixty`.
 
 ```{r}
-_______ <- seven_dwarfs |>
-  _______
+thirty <- wait_times |>
+  filter(wait_minutes_posted_avg == 30)
 
-_______ <- seven_dwarfs |>
-  _______
+sixty <- wait_times |>
+  filter(wait_minutes_posted_avg == 60)
 
 predicted_thirty <- standardized_model |>
-  _______(newdata = _______) |>
-  _______
+  augment(newdata = thirty) |>
+  select(thirty_posted_minutes = .fitted)
 
 predicted_sixty <- standardized_model |>
-  _______(newdata = _______) |>
-  _______
+  augment(newdata = sixty) |>
+  select(sixty_posted_minutes = .fitted)
 ```
 
 # Your Turn 3
@@ -154,11 +154,11 @@ Finally, we'll get the mean differences between the values.
 2. Summarize the predicted values to create three new variables: `mean_thirty`, `mean_sixty`, and `difference`. The first two should be the means of `thirty_posted_minutes` and `sixty_posted_minutes`. `difference` should be `mean_sixty` minus `mean_thirty`.
 
 ```{r}
-_______ |>
-  _______(
-    mean_thirty = _______,
-    mean_sixty = _______,
-    difference = _______
+bind_cols(predicted_thirty, predicted_sixty) |>
+  mutate(
+    mean_thirty = mean(thirty_posted_minutes),
+    mean_sixty = mean(sixty_posted_minutes),
+    difference = mean_sixty - mean_thirty
   )
 ```
 

@@ -27,14 +27,22 @@ Create a function called `ipw_fit` that fits the propensity score model from Exe
 ```{r}
 #| eval: false
 fit_ipw <- function(split, ...) { 
-  .df <- ____
+  .df <- analysis(split)
   
   # fit propensity score model
-  
+  propensity_model <- glm(
+    park_extra_magic_morning ~ park_ticket_season +
+      park_close + 
+      park_temperature_high,
+    family = binomial(),
+    data = .df
+  )
   # calculate ATE weights
-
+.df <- propensity_model |> 
+  augment(type.predict = "response", data = .df) |>
+  mutate(wts = wt_ate(.fitted, park_extra_magic_morning, exposure_type = "binary"))
   # fit correctly bootstrapped ipw model 
-  lm(___ ~ ___, data = .df, weights = ___) |>
+  lm(wait_minutes_posted_avg ~ park_extra_magic_morning, data = .df, weights = wts) |>
     tidy() 
 }
 ```
@@ -45,8 +53,8 @@ Bootstrap this result 1000 times.
 #| eval: false
 set.seed(1234)
 
-ipw_results <- ____(___, 1000, apparent = TRUE) |>
-  mutate(boot_fits = map(splits, _____)) 
+ipw_results <- bootstraps(seven_dwarfs, 1000, apparent = TRUE) |>
+  mutate(boot_fits = map(splits, fit_ipw)) 
 ```
 
 Check out the distribution of estimates (**no need to change this code**)
@@ -72,8 +80,8 @@ Calculate the confidence interval
 
 ```{r}
 #| eval: false
-boot_estimate <- ____(____, ____) |>
-  filter(term == ____)
+boot_estimate <- int_t(ipw_results, boot_fits) |>
+  filter(term == "park_extra_magic_morning")
 
 boot_estimate
 ```

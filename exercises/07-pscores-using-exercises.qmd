@@ -40,13 +40,13 @@ Create at "matched" data set using the same propensity score model as above and 
 #| eval: false
 library(MatchIt)
 matched_dwarfs <- matchit(
-  ___,
+  park_extra_magic_morning ~ park_ticket_season + park_close + park_temperature_high,
   data = seven_dwarfs,
-  ___,
-  ___
+  link = "linear.logit",
+  caliper = 0.2
 )
 
-matched_df <- ___(matched_dwarfs)
+matched_df <- get_matches(matched_dwarfs)
 ```
 
 ## Your Turn 2 (Weighting)
@@ -58,7 +58,7 @@ Add the ATE weights to the data frame, `seven_dwarfs_prop`
 ```{r}
 #| eval: false
 seven_dwarfs_prop <- seven_dwarfs_prop |>
-  mutate(w_ate = ___)
+  mutate(w_ate = wt_ate(.fitted, park_extra_magic_morning))
 ```
 
 
@@ -69,7 +69,7 @@ Add ATM weights to the data frame, `seven_dwarfs_prop`
 ```{r}
 #| eval: false
 seven_dwarfs_prop <- seven_dwarfs_prop |>
-  mutate(w_atm = ___)
+  mutate(w_atm = wt_atm(.fitted, park_extra_magic_morning))
 ```
 
 Stretch Goal 2: 
@@ -85,7 +85,7 @@ ggplot(
   aes(.fitted, fill = factor(park_extra_magic_morning))
 ) +
   geom_mirror_histogram(bins = 50, alpha = .5) +
-  geom_mirror_histogram(aes(weight = ____), alpha = .5, bins = 50) +
+  geom_mirror_histogram(aes(weight = w_atm), alpha = .5, bins = 50) +
   geom_hline(yintercept = 0, lwd = 0.5) +
   theme_minimal() +
   scale_y_continuous(labels = abs) +
